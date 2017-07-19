@@ -6,14 +6,14 @@ def pong():
       https://docs.python.org/2/library/curses.html
       version: pong-1.1
    '''
-    
+
     HEIGHT = 20
     WIDTH = 60
     TIMEOUT = 50
 
     class player(object):
         def __init__(self, name, body, keyup, keydown, side):
-            self.name = name
+            self.name = name # name of player
             self.hit_score = 0
             self.keyup = keyup
             self.keydown = keydown
