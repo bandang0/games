@@ -1,4 +1,12 @@
 def pong():
+   '''
+      PONG game developped for the Theia Project
+      to see curses documentation:
+      https://docs.python.org/2/howto/curses.html
+      https://docs.python.org/2/library/curses.html
+      version: pong-1.1
+   '''
+    
     HEIGHT = 20
     WIDTH = 60
     TIMEOUT = 50
