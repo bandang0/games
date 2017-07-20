@@ -87,7 +87,7 @@ def pong():
             self.coef = coef
 
     def input_key(name, direction):
-        k = raw_input("{}'s' key {}: ".format(name, direction))
+        k = raw_input("{}'s key {}: ".format(name, direction))
         if k == 'up':
             key = curses.KEY_UP
         elif k=='down':
