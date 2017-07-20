@@ -1,19 +1,21 @@
-def pong():
-   '''
-      PONG game developped for the Theia Project
-      to see curses documentation:
-      https://docs.python.org/2/howto/curses.html
-      https://docs.python.org/2/library/curses.html
-      version: pong-1.1
-   '''
+'''
+   PONG game developped for the Theia Project
+   to see curses documentation:
+   https://docs.python.org/2/howto/curses.html
+   https://docs.python.org/2/library/curses.html
+'''
 
+import curses
+import sys
+
+def pong():
     HEIGHT = 20
     WIDTH = 60
     TIMEOUT = 50
 
     class player(object):
         def __init__(self, name, body, keyup, keydown, side):
-            self.name = name # name of player
+            self.name = name
             self.hit_score = 0
             self.keyup = keyup
             self.keydown = keydown
@@ -44,16 +46,22 @@ def pong():
         def go_up(self):
             win.addch(self.body[-1][0], self.body[-1][1], ' ')
             del self.body[-1]
-            self.body.insert(0, [self.body[0][0]-1, self.body[-1][1]])
+            if self.body[0][0] == 1 :
+                self.body.insert(0, [HEIGHT-2, self.body[-1][1]])
+            else:
+                self.body.insert(0, [self.body[0][0]-1, self.body[-1][1]])
             self.update_bounce()
             win.addch(self.body[0][0], self.body[0][1], '|')
 
         def go_down(self):
             win.addch(self.body[0][0], self.body[0][1], ' ')
             del self.body[0]
-            self.body.insert(len(self.body), [self.body[-1][0]+1, self.body[-1][1]])
+            if self.body[-1][0] == HEIGHT-2 :
+                self.body.insert(len(self.body), [1, self.body[-1][1]])
+            else:
+                self.body.insert(len(self.body), [self.body[-1][0]+1, self.body[-1][1]])
             self.update_bounce()
-            win.addch(self.body[-1][0], self.body[-1][1], '|')
+            #win.addch(self.body[-1][0], self.body[-1][1], '|')
 
     class ball(object):
         def __init__(self, dir=-1, coef=0):
@@ -78,18 +86,34 @@ def pong():
             self.dir = dir
             self.coef = coef
 
+    def input_key(name, direction):
+        k = raw_input("{}'s' key {}: ".format(name, direction))
+        if k == 'up':
+            key = curses.KEY_UP
+        elif k=='down':
+            key = curses.KEY_DOWN
+        else:
+            key = ord(k)
+        return(key)
+
     print('---------------------------')
     print('Welcome to PONG multiplayer')
     print('---------------------------')
-    name1 = raw_input('player left name: ')
-    print('Do not use the following key(s): ESC, SPACE, p, n')
-    keyup1 = ord('{}'.format(raw_input('{} key up: '.format(name1))))
-    keydown1 = ord('{}'.format(raw_input('{} key down: '.format(name1))))
+    choice = raw_input('Change timeout ? (default=50) ')
+    if 'y' in choice:
+        TIMEOUT = raw_input('timeout = ')
 
-    name2 = raw_input('player right name: ')
-    print('Do not use the following key(s): ESC, SPACE, p, n')
-    keyup2 = ord('{}'.format(raw_input('{} key up: '.format(name2))))
-    keydown2 = ord('{}'.format(raw_input('{} key down: '.format(name2))))
+    name1 = raw_input("left player's name: ")
+    print('Do not use the following keys: ESC, SPACE, p, n')
+    print('write "up" or "down" to use the arrows')
+    keyup1 = input_key(name1, 'up')
+    keydown1 = input_key(name1, 'down')
+
+    name2 = raw_input("right player's name: ")
+    print('Do not use the following keys: ESC, SPACE, p, n')
+    print('write "up" or "down" to use the arrows')
+    keyup2 = input_key(name2, 'up')
+    keydown2 = input_key(name2, 'down')
 
     curses.initscr()
     win = curses.newwin(HEIGHT, WIDTH, 0, 0) #y,x coordiates
@@ -98,7 +122,10 @@ def pong():
     curses.curs_set(0)
     win.border(0)
     win.nodelay(1)
-    win.timeout(TIMEOUT)
+    try:
+        win.timeout(int(TIMEOUT))
+    except TypeError:
+        win.timeout(50)
 
     #name1 = 'player1'
     score1 = 0
@@ -128,17 +155,6 @@ def pong():
         event = win.getch()
         key = event
 
-        if player1.hit_score == score_max-1:
-            winer = player1
-            looser = player2
-            winer_message = '{} has defeated {} {}-{}'.format(winer.name, looser.name,
-                                                    winer.hit_score+1, looser.hit_score)
-        elif player2.hit_score == score_max-1:
-            winer = player2
-            looser = player1
-            winer_message = '{} has defeated {} {}-{}'.format(winer.name, looser.name,
-                                                    winer.hit_score+1, looser.hit_score)
-
     # pause mode
         prevKey = key
         event = win.getch()
@@ -153,25 +169,13 @@ def pong():
 
     # move the players
         if key == player1.keyup:
-            if player1.body[0][0] == 1 :
-                continue
-            else:
-                player1.go_up()
+            player1.go_up()
         if key == player1.keydown:
-            if player1.body[2][0] == HEIGHT-2 :
-                continue
-            else:
-                player1.go_down()
+            player1.go_down()
         if key == player2.keyup:
-            if player2.body[0][0] == 1 :
-                continue
-            else:
-                player2.go_up()
+            player2.go_up()
         if key == player2.keydown:
-            if player2.body[2][0] == HEIGHT-2 :
-                continue
-            else:
-                player2.go_down()
+            player2.go_down()
 
     # move the ball
         if ball.position in player1.bounce:
@@ -181,7 +185,7 @@ def pong():
         elif ball.position[0] == 1 or ball.position[0] == HEIGHT-2:
             ball.bounce_segment()
 
-        if ball.position[1] == WIDTH-2 and ball.position not in player2.body:
+        if ball.position[1] == WIDTH-2: #and ball.position not in player2.body:
             if player1.hit_score < score_max -1:
                 win.addstr(3, 10, new_round_message)
             else:
@@ -193,7 +197,7 @@ def pong():
             ball.reset(dir=1)
             point = True
 
-        elif ball.position[1] == 1 and ball.position not in player1.body:
+        elif ball.position[1] == 1: #and ball.position not in player1.body:
             if player2.hit_score < score_max -1:
                 win.addstr(3, 10, new_round_message)
             else:
@@ -234,6 +238,17 @@ def pong():
                 ball.position[1] = WIDTH-2
             win.addch(ball.position[0], ball.position[1], 'o')
 
+        if player1.hit_score == score_max-1:
+            winer = player1
+            looser = player2
+            winer_message = '{} has defeated {} {}-{}'.format(winer.name, looser.name,
+                                                    winer.hit_score+1, looser.hit_score)
+        elif player2.hit_score == score_max-1:
+            winer = player2
+            looser = player1
+            winer_message = '{} has defeated {} {}-{}'.format(winer.name, looser.name,
+                                                    winer.hit_score+1, looser.hit_score)
+
     curses.endwin()
     print('---------------------------')
     print('End game')
@@ -242,3 +257,6 @@ def pong():
     except UnboundLocalError:
         print('No one won the match')
     sys.exit(0)
+
+if __name__=='__main__':
+    pong()
